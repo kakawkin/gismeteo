@@ -5,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Registry, Vcl.StdCtrls, Vcl.ExtCtrls,jpeg,PNGImage,
-  winsock,Unit2, Vcl.ExtDlgs, MSXML, Xml.xmldom, Xml.XMLIntf, Xml.XMLDoc;
+  winsock,Unit2, Vcl.ExtDlgs, MSXML, Xml.xmldom, Xml.XMLIntf, Xml.XMLDoc,
+  Vcl.Samples.Spin, Vcl.ComCtrls, inifiles;
 
 type
   TMyArray = Array of String;
@@ -14,9 +15,13 @@ type
     Image2: TImage;
     Image3: TImage;
     Memo1: TMemo;
-    Memo2: TMemo;
     Timer1: TTimer;
     XMLDocument: TXMLDocument;
+    TrackBar1: TTrackBar;
+    Label1: TLabel;
+    Timer2: TTimer;
+    ColorBox1: TColorBox;
+    Label2: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure Image2MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -25,8 +30,10 @@ type
     procedure Image2MouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     function ImageText(var Image:TImage;x,y:integer;text:array of string):boolean;
-    function GetWeatherFile(url:string;number:integer): TMyArray;
+    function GetWeatherFile(number:integer): TMyArray;
     procedure Timer1Timer(Sender: TObject);
+    procedure TrackBar1Change(Sender: TObject);
+    function check_file_and_folder():string;
   private
     { Private declarations }
   public
@@ -35,8 +42,8 @@ type
 
 var
   Form1: TForm1;
-  WindowsWallpaper: string;
-  x0, y0: integer;
+  WindowsWallpaper, mypicture: string;
+  x0,y0,fontt: integer;
   move: boolean;
   tod: array [0..3] of string=('Ночь','Утро','День','Вечер');
   cloudiness: array[0..3] of string=('Ясно','Малооблачно','Облачно','Пасмурно');
@@ -49,44 +56,67 @@ implementation
 
 function GetAspect(): string; // соотношение сторон
 var
-  Aspect: single;
+  Aspect:single;
   W,H:integer;
-
-
+  i:string;
 begin
   W := GetSystemMetrics(SM_CXSCREEN);
   H := GetSystemMetrics(SM_CYSCREEN);
   Aspect:= (W / H);
-  result:=FloatToStrF(Aspect,ffFixed,4,2);
-  //Form1.Image1.Width:=Form1.Image1.Height*Round(Aspect);
-  //Form1.Width:=Form1.Image1.Width+40;
-
+  {showmessage('16:10= '+FloatToStrF(16/10,ffFixed,9,2)+#13#10+
+  '16:9= '+FloatToStrF(16/9,ffFixed,9,2)+#13#10+
+  '5:4= '+FloatToStrF(5/4,ffFixed,9,2)+#13#10+
+  '4:3= '+FloatToStrF(4/3,ffFixed,9,2)+#13#10);}
+  i:=FloatToStrF(Aspect,ffFixed,9,2);
+  result:=i;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
-var R: TRegistry; s:string;
+var s:string;
+    Ini: Tinifile;
 begin
-  R:=TRegistry.Create();
+  trackbar1.Position:=5;
+  GetAspect();
+  Form1.Position:=poScreenCenter; // форма по середине экрана
+  check_file_and_folder();
+  Image1.Picture.LoadFromFile(mypicture+'\Gismeteo\gismeteo.jpg'); // Картинка рабочего стола в Image1
+  Image3.Height:=100; // соотношение сторон логотипа
+  Image3.Width:=round(Image3.Height*1.3);
+  Image3.Picture.LoadFromFile('logo.png'); // Логотип Gismeteo в Image3
+  Form1.DoubleBuffered:=true; // убираем мерцания при передвижении виджета
+  Ini:=TInifile.Create(extractfilepath(paramstr(0))+'MyIni.ini'); // ассоциация ini файла
+  if FileExists(extractfilepath(paramstr(0))+'MyIni.ini') then
+  begin // если есть файл - считываем данные
+  end
+  else
+  begin // Если отсутствует файл - записываем данные
+    Ini.WriteInteger('scale_Image','value',trackbar1.Position+1);
+    Ini.WriteString('Aspect','value',GetAspect);
+  end;
+  Ini.Free;
+end;
+
+function TForm1.check_file_and_folder():string;
+var R: TRegistry;
+begin
+  R:=TRegistry.Create(); // путь с реестра до картинки рабочего стола, и до папки Мои картинки
   R.OpenKeyReadOnly('Control Panel\Desktop');
   WindowsWallpaper:=R.ReadString('WallPaper');
   R.CloseKey;
+  R.OpenKeyReadOnly('\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders');
+  mypicture:=R.ReadString('My Pictures');
+  R.CloseKey;
   R.Free;
-  if FileExists(WindowsWallpaper+'.bakGis') then
-  begin end
-  else
-  begin
-  CopyFile(PWideChar(WideString(WindowsWallpaper)),PWideChar(WideString(WindowsWallpaper+'.bakGis')),false);
-  end;
-  Image1.Picture.LoadFromFile(WindowsWallpaper);
-  Image3.Picture.LoadFromFile('logo.png');
-  Image3.Width:=round(Image3.Height*1.3);
-  Form1.DoubleBuffered:=true; // убираем мерцания при передвижении картинок
-  //ImageText(Image2,20,20,'99');
-  //GetWeatherFile('http://gismeteo.ru',28722);
+  if DirectoryExists(mypicture+'\Gismeteo')
+    then
+    else CreateDir(mypicture+'\Gismeteo');
+  if FileExists(mypicture+'\Gismeteo\gismeteo.jpg')
+    then
+    else CopyFile(Pchar(WindowsWallpaper),PChar(mypicture+'\Gismeteo\gismeteo.jpg'), false);
+
 end;
 
-procedure TForm1.Image2MouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+procedure TForm1.Image2MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer);
 begin
   if button <> mbLeft then
     move:=false //если нажали не левой кнопкой, то перемещать не будем!
@@ -126,12 +156,13 @@ begin
   bmp.Width:=image.Width;
   bmp.Height:=image.Height;
   bmp.Canvas.Brush.Style:=bsClear;
-  bmp.Canvas.Font.Size:=12;
+  bmp.Canvas.Font.Color:=ColorBOx1.Selected;
+  bmp.Canvas.Font.Size:=TrackBar1.Position+6;
   bmp.Canvas.Font.Quality:=fqAntialiased;
-  bmp.Canvas.Font.Name:='MS Gothic';
+  bmp.Canvas.Font.Name:='Calibri';
   for i:=0 to 6 do
     begin
-      bmp.Canvas.TextOut(x,y+(15*i),text[i]);
+      bmp.Canvas.TextOut(x,y+((TrackBar1.Position+6+3)*i),text[i]);
     end;
   image.Picture:=nil;
   image.Transparent:=true;
@@ -142,52 +173,63 @@ end;
 procedure TForm1.Timer1Timer(Sender: TObject);
 var data:TMyArray;
 begin
-  data:=GetWeatherFile('http://gismeteo.ru',28722);
+  if length(data)>10 then ImageText(Image2,100,90,data);
+  data:=GetWeatherFile(28722);
   //data[0]=дата | data[1]=облачность | data[2]=осадки | data[3]=давление | data[4]=температура | data[5]=ветер | data[6]=влажность
   ImageText(Image2,100,90,data);
 end;
 
-function TForm1.GetWeatherFile(url:string;number:integer): TMyArray;
+procedure TForm1.TrackBar1Change(Sender: TObject);
+var i:integer;
+begin
+  i:=timer1.Interval;
+  timer1.Interval:=1;
+  timer1.Interval:=i;
+end;
+
+function TForm1.GetWeatherFile(number:integer): TMyArray;
 var query:string;
     Root: IXMLNode;
     day,month,year:string; // день, число, год
     i,j,k: integer; // для хранения
+    text:string;
 begin
   SetLength(result, 7);
-  Memo1.Text:=Unit2.HTTPGet(url,inttostr(number));
-  Memo1.Lines.SaveToFile('weather.xml');
-  XMLDocument.LoadFromFile(ExtractFileDir(ParamStr(0))+'\weather.xml');
+  //Memo1.Text:=Unit2.HTTPGet(inttostr(number));
+  //Memo1.Lines.SaveToFile('weather.xml');
+  //XMLDocument.LoadFromFile(ExtractFileDir(ParamStr(0))+'\weather.xml');
+  text:=Unit2.HTTPGet(inttostr(number));
+  XMLDocument.LoadFromXML(text);
   XMLDocument.Active:=True;
   root:=XMLDocument.DocumentElement;
-  Memo2.Clear;
   day:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('day');
   month:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('month');
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('tod');
-  Memo2.Lines.Add('Дата: '+day+'.'+month+' , '+tod[i]);
+
   result[0]:= day+'.'+month+', '+tod[i];
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('cloudiness');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('precipitation');
-  Memo2.Lines.Add('Облачность: '+cloudiness[i]);
+
   result[1]:=cloudiness[i];
-  Memo2.Lines.Add('Осадки: '+precipitation[j]);
+
   result[2]:=precipitation[j];
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[1].GetAttribute('min');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[1].GetAttribute('max');
-  Memo2.Lines.Add('Давление: '+inttostr(round((i+j)/2)));
+
   result[3]:='Давление: '+inttostr(round((i+j)/2))+' мм рт.ст.';
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[2].GetAttribute('min');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[2].GetAttribute('max');
-  Memo2.Lines.Add('Температура: '+inttostr(i)+'..'+inttostr(j));
+
   result[4]:='Температура: '+inttostr(i)+'..'+inttostr(j)+' C°';
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[3].GetAttribute('min');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[3].GetAttribute('max');
   k:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[3].GetAttribute('direction');
-  Memo2.Lines.Add('Ветер: '+direction[k]+' '+inttostr(i)+'-'+inttostr(j)+' м/с');
+
   result[5]:='Ветер: '+direction[k]+' '+inttostr(i)+'-'+inttostr(j)+' м/с';
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[4].GetAttribute('min');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[4].GetAttribute('max');
-  Memo2.Lines.Add('Влажность: '+inttostr(round((i+j)/2))+'%');
-  result[6]:='Влажность'+inttostr(round((i+j)/2))+'%';
+
+  result[6]:='Влажность: '+inttostr(round((i+j)/2))+'%';
 end;
 
 
