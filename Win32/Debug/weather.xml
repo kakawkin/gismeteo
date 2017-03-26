@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MMWEATHER>
+	<REPORT type="frc3">
+		<TOWN index="28722" sname="%D3%F4%E0" latitude="54" longitude="55">
+			<FORECAST day="26" month="03" year="2017" hour="02" tod="0" predict="0" weekday="1">
+				<PHENOMENA cloudiness="3" precipitation="4" rpower="0" spower="0"/>
+				<PRESSURE max="744" min="742"/>
+				<TEMPERATURE max="3" min="1"/>
+				<WIND min="5" max="7" direction="4"/>
+				<RELWET max="92" min="90"/>
+				<HEAT min="-3" max="-1"/>
+			</FORECAST>
+			<FORECAST day="26" month="03" year="2017" hour="08" tod="1" predict="0" weekday="1">
+				<PHENOMENA cloudiness="3" precipitation="6" rpower="0" spower="0"/>
+				<PRESSURE max="744" min="742"/>
+				<TEMPERATURE max="1" min="-1"/>
+				<WIND min="4" max="6" direction="5"/>
+				<RELWET max="89" min="87"/>
+				<HEAT min="-4" max="-2"/>
+			</FORECAST>
+			<FORECAST day="26" month="03" year="2017" hour="14" tod="2" predict="0" weekday="1">
+				<PHENOMENA cloudiness="0" precipitation="10" rpower="0" spower="0"/>
+				<PRESSURE max="747" min="745"/>
+				<TEMPERATURE max="3" min="1"/>
+				<WIND min="5" max="7" direction="4"/>
+				<RELWET max="60" min="58"/>
+				<HEAT min="-2" max="0"/>
+			</FORECAST>
+			<FORECAST day="26" month="03" year="2017" hour="20" tod="3" predict="0" weekday="1">
+				<PHENOMENA cloudiness="2" precipitation="10" rpower="0" spower="0"/>
+				<PRESSURE max="747" min="745"/>
+				<TEMPERATURE max="1" min="-1"/>
+				<WIND min="4" max="6" direction="4"/>
+				<RELWET max="73" min="71"/>
+				<HEAT min="-4" max="-2"/>
+			</FORECAST>
+		</TOWN>
+	</REPORT>
+</MMWEATHER>

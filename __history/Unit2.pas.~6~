@@ -1,0 +1,58 @@
+unit Unit2;
+ 
+interface
+
+uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Registry, Vcl.StdCtrls, Vcl.ExtCtrls,jpeg,PNGImage,
+  winsock;
+ 
+function HTTPGet(URL,Query:String):string;
+ 
+implementation
+
+function HTTPGet(URL,Query:String):string;   //HTTPGet('site.ru','/index.php?id=123');
+ var
+   WSAData1: TWSAData;
+   SockAddr1:TSockAddr;
+   Socket1: TSocket;
+   Buffer1:string;
+   i,d:integer;
+   Response:string;
+   BytesRead: Integer;
+ begin
+ //Если при вызове, функция выдала значение не равное "0", то выходим из функции.
+   if WSAStartup(MAKEWORD(2,2), WSAData1)<>0 then
+     Exit;
+   Socket1:=Socket(AF_INET,SOCK_STREAM,0); // Создаём Socket
+   if Socket1=INVALID_SOCKET then
+     Exit; // Если при создании возникла ошибка, то выходим из функции.
+   SockAddr1.sin_family:=AF_INET; // Указываем спецификацию типа "AF_INET" для TCP/IP
+   //SockAddr1.sin_addr:=pinaddr(gethostbyname(PAnsiChar(URL))^.h_addr^)^; // Тута мы вводим ссылку, получаем IP адрес сайта.
+   SockAddr1.sin_addr.S_addr:= inet_addr(PAnsiChar('92.242.43.216'));
+   SockAddr1.sin_port:=htons(80); //Ну порт с которым всегда работаем "80"
+   if Connect(Socket1,SockAddr1,SizeOf(SockAddr1))<>0 then
+     exit; //Если при подключении (не отправке), функция возвращает значение не равное "0", то выходим из функции.
+
+   Buffer1:='GET '+Query+' HTTP/1.1'#13#10+
+            'Host: informer.gismeteo.ru'#13#10+
+            'Connection: keep-alive'#13#10+
+            'Cache-Control: max-age=0'#13#10+
+            'Upgrade-Insecure-Requests: 1'#13#10+
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.110 Safari/537.36'#13#10+
+            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'#13#10+
+            'Accept-Encoding: gzip, deflate, sdch'#13#10+
+            'Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4'#13#10+
+            'X-Compress: null';
+
+
+   // Выше мы составили Header
+
+   send(Socket1,Buffer1[1],Length(Buffer1),0); //без возвращаемого значения
+   SetLength(Response,65536);
+   BytesRead := Recv(Socket1, PChar(Response)^, 65536, 0);
+   result:=Response;
+   CloseSocket(Socket1);
+   WSACleanup;
+ end;
+ 
+end.
