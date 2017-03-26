@@ -22,6 +22,7 @@ type
     Timer2: TTimer;
     ColorBox1: TColorBox;
     Label2: TLabel;
+    Image4: TImage;
     procedure FormCreate(Sender: TObject);
     procedure Image2MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -63,10 +64,12 @@ begin
   W := GetSystemMetrics(SM_CXSCREEN);
   H := GetSystemMetrics(SM_CYSCREEN);
   Aspect:= (W / H);
-  {showmessage('16:10= '+FloatToStrF(16/10,ffFixed,9,2)+#13#10+
-  '16:9= '+FloatToStrF(16/9,ffFixed,9,2)+#13#10+
-  '5:4= '+FloatToStrF(5/4,ffFixed,9,2)+#13#10+
-  '4:3= '+FloatToStrF(4/3,ffFixed,9,2)+#13#10);}  //ррр
+  {
+    16:10=1.6
+    16:9=1.78
+    5:4=1.25
+    4:3=1.33
+  }
   i:=FloatToStrF(Aspect,ffFixed,9,2);
   result:=i;
 end;
@@ -79,6 +82,7 @@ begin
   GetAspect();
   Form1.Position:=poScreenCenter; // форма по середине экрана
   check_file_and_folder();
+  image4.Transparent:=true;
   Image1.Picture.LoadFromFile(mypicture+'\Gismeteo\gismeteo.jpg'); // Картинка рабочего стола в Image1
   Image3.Height:=100; // соотношение сторон логотипа
   Image3.Width:=round(Image3.Height*1.3);
@@ -137,6 +141,8 @@ begin
     image2.Top:=image2.Top+y-y0;
     image3.Left:=image3.Left+x-x0;
     image3.Top:=image3.Top+y-y0;
+    image4.Left:=image4.Left+x-x0;
+    image4.Top:=image4.Top+y-y0;
   end;
 end;
 
@@ -148,15 +154,15 @@ end;
 
 function TForm1.ImageText(var Image:TImage;x,y:integer;text:array of string):boolean;
 var
-  bmp: TBitmap;
-  var i:integer;
+  bmp,bmp2: TBitmap;
+  i,xx,yy:integer;
 begin
   bmp:=TBitmap.Create;
   bmp.PixelFormat:=pf8bit;
   bmp.Width:=image.Width;
   bmp.Height:=image.Height;
   bmp.Canvas.Brush.Style:=bsClear;
-  bmp.Canvas.Font.Color:=ColorBOx1.Selected;
+  bmp.Canvas.Font.Color:=ColorBox1.Selected;
   bmp.Canvas.Font.Size:=TrackBar1.Position+6;
   bmp.Canvas.Font.Quality:=fqAntialiased;
   bmp.Canvas.Font.Name:='Calibri';
@@ -168,15 +174,32 @@ begin
   image.Transparent:=true;
   image.Picture.Bitmap.Assign(bmp);
   bmp.Free;
+  bmp:=TBitmap.Create;
+  bmp2:=TBitmap.Create;
+  bmp2.PixelFormat:=pf24bit;
+  bmp2.Mask(clblack);
+  bmp2.TransparentColor:=clblack;
+  bmp2.Transparent:=True;
+  bmp.Assign(Form1.Image1.Picture.Graphic);
+  bmp2.Assign(Form1.Image4.Picture.Graphic);
+
+
+
+
+  xx:=round((image1.Left-image4.Left)*1.78);
+  yy:=round((image1.Top-image4.Top)*1.78);
+  bmp.Canvas.Draw(500,500,bmp2);
+  bmp.SaveToFile('test.jpg');
+  bmp.Free;
+  bmp2.Free;
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
 var data:TMyArray;
 begin
-  if length(data)>10 then ImageText(Image2,100,90,data);
   data:=GetWeatherFile(28722);
   //data[0]=дата | data[1]=облачность | data[2]=осадки | data[3]=давление | data[4]=температура | data[5]=ветер | data[6]=влажность
-  ImageText(Image2,100,90,data);
+  ImageText(Image4,1,1,data);
 end;
 
 procedure TForm1.TrackBar1Change(Sender: TObject);
