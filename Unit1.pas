@@ -66,7 +66,7 @@ begin
   {showmessage('16:10= '+FloatToStrF(16/10,ffFixed,9,2)+#13#10+
   '16:9= '+FloatToStrF(16/9,ffFixed,9,2)+#13#10+
   '5:4= '+FloatToStrF(5/4,ffFixed,9,2)+#13#10+
-  '4:3= '+FloatToStrF(4/3,ffFixed,9,2)+#13#10);}  //ננננננ
+  '4:3= '+FloatToStrF(4/3,ffFixed,9,2)+#13#10);}  //נננ
   i:=FloatToStrF(Aspect,ffFixed,9,2);
   result:=i;
 end;
