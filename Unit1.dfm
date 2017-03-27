@@ -91,7 +91,7 @@ object Form1: TForm1
   end
   object Image4: TImage
     Left = 415
-    Top = 266
+    Top = 250
     Width = 300
     Height = 225
     AutoSize = True
@@ -120,7 +120,33 @@ object Form1: TForm1
     Height = 22
     TabOrder = 2
   end
+  object Button1: TButton
+    Left = 144
+    Top = 1
+    Width = 75
+    Height = 25
+    Caption = #1057#1090#1072#1088#1090
+    TabOrder = 3
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 664
+    Top = 0
+    Width = 75
+    Height = 25
+    Caption = #1059#1076#1072#1083#1080#1090#1100
+    TabOrder = 4
+  end
+  object Button3: TButton
+    Left = 225
+    Top = 1
+    Width = 40
+    Height = 25
+    Caption = 'OFF'
+    TabOrder = 5
+  end
   object Timer1: TTimer
+    Enabled = False
     OnTimer = Timer1Timer
     Left = 888
     Top = 584
@@ -133,5 +159,14 @@ object Form1: TForm1
     Interval = 200
     Left = 920
     Top = 584
+  end
+  object FontDialog1: TFontDialog
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    Left = 376
+    Top = 608
   end
 end

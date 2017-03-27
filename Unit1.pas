@@ -23,6 +23,10 @@ type
     ColorBox1: TColorBox;
     Label2: TLabel;
     Image4: TImage;
+    Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
+    FontDialog1: TFontDialog;
     procedure FormCreate(Sender: TObject);
     procedure Image2MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -35,6 +39,7 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
     function check_file_and_folder():string;
+    procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -78,12 +83,14 @@ procedure TForm1.FormCreate(Sender: TObject);
 var s:string;
     Ini: Tinifile;
 begin
+
+  //Image4.Top:=Image3.Top+Image3.Height+3;// Расстояние между логотипом и погодой 3 пикселя
   trackbar1.Position:=5;
   GetAspect();
   Form1.Position:=poScreenCenter; // форма по середине экрана
   check_file_and_folder();
   image4.Transparent:=true;
-  Image1.Picture.LoadFromFile(mypicture+'\Gismeteo\gismeteo.jpg'); // Картинка рабочего стола в Image1
+  Image1.Picture.LoadFromFile(WindowsWallpaper); // Картинка рабочего стола в Image1
   Image3.Height:=100; // соотношение сторон логотипа
   Image3.Width:=round(Image3.Height*1.3);
   Image3.Picture.LoadFromFile('logo.png'); // Логотип Gismeteo в Image3
@@ -91,13 +98,25 @@ begin
   Ini:=TInifile.Create(extractfilepath(paramstr(0))+'MyIni.ini'); // ассоциация ini файла
   if FileExists(extractfilepath(paramstr(0))+'MyIni.ini') then
   begin // если есть файл - считываем данные
-  end
-  else
+  end else
   begin // Если отсутствует файл - записываем данные
     Ini.WriteInteger('scale_Image','value',trackbar1.Position+1);
     Ini.WriteString('Aspect','value',GetAspect);
   end;
   Ini.Free;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  if Timer1.Enabled then
+  begin
+    Timer1.Enabled:=False;
+    Button3.Caption:='OFF';
+  end else
+  begin
+  Timer1.Enabled:=True;
+  Button3.Caption:='ON';
+  end;
 end;
 
 function TForm1.check_file_and_folder():string;
@@ -114,9 +133,6 @@ begin
   if DirectoryExists(mypicture+'\Gismeteo')
     then
     else CreateDir(mypicture+'\Gismeteo');
-  if FileExists(mypicture+'\Gismeteo\gismeteo.jpg')
-    then
-    else CopyFile(Pchar(WindowsWallpaper),PChar(mypicture+'\Gismeteo\gismeteo.jpg'), false);
 
 end;
 
@@ -182,14 +198,13 @@ begin
   bmp2.Transparent:=True;
   bmp.Assign(Form1.Image1.Picture.Graphic);
   bmp2.Assign(Form1.Image4.Picture.Graphic);
-
-
-
-
   xx:=round((image1.Left-image4.Left)*1.78);
   yy:=round((image1.Top-image4.Top)*1.78);
   bmp.Canvas.Draw(500,500,bmp2);
-  bmp.SaveToFile('test.jpg');
+  if FileExists(mypicture+'\Gismeteo\wallpaper.jpg')
+    then
+    else DeleteFile(mypicture+'\Gismeteo\wallpaper.jpg');
+  bmp.SaveToFile(mypicture+'\Gismeteo\wallpaper.jpg');
   bmp.Free;
   bmp2.Free;
 end;
@@ -228,30 +243,23 @@ begin
   day:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('day');
   month:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('month');
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('tod');
-
   result[0]:= day+'.'+month+', '+tod[i];
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('cloudiness');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[0].GetAttribute('precipitation');
-
   result[1]:=cloudiness[i];
-
   result[2]:=precipitation[j];
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[1].GetAttribute('min');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[1].GetAttribute('max');
-
   result[3]:='Давление: '+inttostr(round((i+j)/2))+' мм рт.ст.';
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[2].GetAttribute('min');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[2].GetAttribute('max');
-
   result[4]:='Температура: '+inttostr(i)+'..'+inttostr(j)+' C°';
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[3].GetAttribute('min');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[3].GetAttribute('max');
   k:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[3].GetAttribute('direction');
-
   result[5]:='Ветер: '+direction[k]+' '+inttostr(i)+'-'+inttostr(j)+' м/с';
   i:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[4].GetAttribute('min');
   j:=root.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[4].GetAttribute('max');
-
   result[6]:='Влажность: '+inttostr(round((i+j)/2))+'%';
 end;
 
